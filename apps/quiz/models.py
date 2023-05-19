@@ -25,7 +25,7 @@ class Question(TimeStamp):
 
 
 class Option(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='option')
     option = models.CharField(max_length=221)
     is_correct = models.BooleanField(default=False)
 
