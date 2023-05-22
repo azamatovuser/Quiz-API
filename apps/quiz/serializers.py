@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+import apps.quiz.models
 from .models import Question, Option, Result, Category
 
 

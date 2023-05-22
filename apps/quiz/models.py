@@ -36,7 +36,7 @@ class Option(models.Model):
 class Result(TimeStamp):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    questions = models.ManyToManyField(Question)
+    questions = models.ManyToManyField(Question, null=True, blank=True)
     result = models.DecimalField(max_digits=5, decimal_places=2)
 
     def __str__(self):
