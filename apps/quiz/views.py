@@ -55,3 +55,19 @@ class AnswerFromStudentPostAPIView(APIView):
         result.result = count
         result.save()
         return Response("Result was saved")
+
+    # Example of sending data
+    # {
+    #   "category_id": 1,
+    #   "questions": [
+    #     {
+    #       "question_id": 1,
+    #       "option_id": 3
+    #     },
+    #     {
+    #       "question_id": 2,
+    #       "option_id": 1
+    #     },
+    #     ...
+    #   ]
+    # }
