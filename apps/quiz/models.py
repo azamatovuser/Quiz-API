@@ -37,7 +37,7 @@ class Result(TimeStamp):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     questions = models.ManyToManyField(Question, null=True, blank=True)
-    result = models.DecimalField(max_digits=5, decimal_places=2)
+    result = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.account}'s result is - {self.result} in {self.category}"

@@ -32,18 +32,26 @@ class ResultListAPIView(generics.ListAPIView):
 
 class AnswerFromStudentPostAPIView(APIView):
     def post(self, request):
-        global option_from_model
+        count = 0
         account = self.request.user
-        category_id = int(self.request.data.get('category_id'))
-        question_id = int(self.request.data.get('question_id'))
-        option_id = int(self.request.data.get('option_id'))
-        # to check answer
-        options = Option.objects.all()
-        for option in options:
-            if option_id == option.id:
-                option_from_model = option
-        if question_id:
-            if option_from_model.is_correct:
-                pass
-                return Response("Correct")
-        return Response("Incorrect")
+        category_id = self.request.data.get('category_id')
+        questions = self.request.data.get('questions')
+        try:
+            Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            return Response("Category not found")
+        result = Result.objects.create(account_id=account.id, category_id=category_id)
+        for i in questions:
+            question_id = int(i.get('question_id'))
+            option_id = int(i.get('option_id'))
+            try:
+                question = Question.objects.get(id=question_id)
+                option = Option.objects.get(id=option_id)
+            except (Question.DoesNotExist, Option.DoesNotExist):
+                continue
+            if option.is_correct:
+                count += 20
+            result.questions.add(question)
+        result.result = count
+        result.save()
+        return Response("Result was saved")
