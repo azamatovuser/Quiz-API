@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from .models import Category, Question, Option, Result
 from .serializers import CategorySerializer, QuestionSerializer, ResultSerializer
 from rest_framework.response import Response
+from operator import attrgetter
 
 
 class CategoryListAPIView(generics.ListAPIView):  # category list
@@ -28,6 +29,11 @@ class QuestionListAPIView(generics.ListAPIView):  # quesiton list with filtered 
 class ResultListAPIView(generics.ListAPIView):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = sorted(qs, key=attrgetter('result'), reverse=True)
+        return qs
 
 
 class AnswerFromStudentPostAPIView(APIView):
@@ -71,3 +77,16 @@ class AnswerFromStudentPostAPIView(APIView):
     #     ...
     #   ]
     # }
+
+
+class AverageStatisticByCategoryListAPIView(APIView):
+    def get(self, request):
+        categories = Category.objects.all()
+        category_results = []
+        for category in categories:
+            average_result = Result.calculate_average_result(category)
+            category_results.append({
+                'title': category.title,
+                'average_result': average_result
+            })
+        return Response(category_results)

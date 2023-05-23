@@ -1,5 +1,6 @@
 from django.db import models
 from apps.account.models import Account
+from django.db.models import Avg
 
 
 class TimeStamp(models.Model):
@@ -41,3 +42,8 @@ class Result(TimeStamp):
 
     def __str__(self):
         return f"{self.account}'s result is - {self.result} in {self.category}"
+
+    @classmethod
+    def calculate_average_result(cls, category):
+        average_result = cls.objects.filter(category=category).aggregate(Avg('result'))['result__avg']
+        return average_result
