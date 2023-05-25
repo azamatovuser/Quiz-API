@@ -1,8 +1,8 @@
 from django.http import HttpResponseNotFound
 from rest_framework import generics
 from rest_framework.views import APIView
-from .models import Category, Question, Option, Result
-from .serializers import CategorySerializer, QuestionSerializer, ResultSerializer
+from .models import Category, Question, Option, Result, Contact
+from .serializers import CategorySerializer, QuestionSerializer, ResultSerializer, ContactSerializer
 from rest_framework.response import Response
 from operator import attrgetter
 from apps.account.models import Account
@@ -142,3 +142,8 @@ class MonthStatisticListAPIView(generics.ListAPIView):
         past_month = now - timedelta(days=30)
         qs = Result.objects.filter(created_date__range=[past_month, now]).annotate(total_results=Count('id'))
         return qs
+
+
+class ContactListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer

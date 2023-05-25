@@ -1,7 +1,5 @@
 from rest_framework import serializers
-
-import apps.quiz.models
-from .models import Question, Option, Result, Category
+from .models import Question, Option, Result, Category, Contact
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -27,3 +25,9 @@ class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
         fields = ['id', 'account', 'category', 'questions', 'result']
+
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = '__all__'

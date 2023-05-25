@@ -52,3 +52,12 @@ class Result(TimeStamp):
     def calculate_average_result_account(cls, account):
         average_result = cls.objects.filter(account=account).aggregate(Avg('result'))['result__avg']
         return average_result
+
+
+class Contact(TimeStamp):
+    name = models.CharField(max_length=221)
+    email = models.EmailField(unique=True)
+    message = models.TextField()
+
+    def __str__(self):
+        return f"{self.name}'s message"
