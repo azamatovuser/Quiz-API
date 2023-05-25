@@ -47,3 +47,8 @@ class Result(TimeStamp):
     def calculate_average_result(cls, category):
         average_result = cls.objects.filter(category=category).aggregate(Avg('result'))['result__avg']
         return average_result
+
+    @classmethod
+    def calculate_average_result_account(cls, account):
+        average_result = cls.objects.filter(account=account).aggregate(Avg('result'))['result__avg']
+        return average_result

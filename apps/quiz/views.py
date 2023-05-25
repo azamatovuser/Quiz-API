@@ -5,6 +5,13 @@ from .models import Category, Question, Option, Result
 from .serializers import CategorySerializer, QuestionSerializer, ResultSerializer
 from rest_framework.response import Response
 from operator import attrgetter
+from apps.account.models import Account
+from apps.account.serializers import AccountSerializer
+from django.db.models import Q
+from django.utils import timezone
+from django.db.models import Count
+from datetime import datetime, timedelta
+from django.db.models.functions import TruncWeek, TruncDay, TruncMonth
 
 
 class CategoryListAPIView(generics.ListAPIView):  # category list
@@ -90,3 +97,48 @@ class AverageStatisticByCategoryListAPIView(APIView):
                 'average_result': average_result
             })
         return Response(category_results)
+
+
+class AverageStatisticByAccountListAPIView(APIView):
+    def get(self, request):
+        accounts = Account.objects.all()
+        account_results = []
+        for account in accounts:
+            average_result_account = Result.calculate_average_result_account(account)
+            serialized_account = AccountSerializer(account).data
+            account_results.append({
+                "account": serialized_account,
+                "average_result_account": average_result_account
+            })
+        return Response(account_results)
+
+
+class DayStatisticListAPIView(generics.ListAPIView):
+    queryset = Result.objects.all()
+    serializer_class = ResultSerializer
+
+    def get_queryset(self):
+        qs = Result.objects.annotate(day=TruncDay('created_date')).filter(day=timezone.now().date()).annotate(total_results=Count('id'))
+        return qs
+
+
+class WeekStatisticListAPIView(generics.ListAPIView):
+    queryset = Result.objects.all()
+    serializer_class = ResultSerializer
+
+    def get_queryset(self):
+        now = timezone.now().date()
+        past_week = now - timedelta(days=7)
+        qs = Result.objects.filter(created_date__range=[past_week, now]).annotate(total_results=Count('id'))
+        return qs
+
+
+class MonthStatisticListAPIView(generics.ListAPIView):
+    queryset = Result.objects.all()
+    serializer_class = ResultSerializer
+
+    def get_queryset(self):
+        now = timezone.now().date()
+        past_month = now - timedelta(days=30)
+        qs = Result.objects.filter(created_date__range=[past_month, now]).annotate(total_results=Count('id'))
+        return qs
