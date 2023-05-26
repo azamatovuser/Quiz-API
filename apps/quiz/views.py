@@ -26,6 +26,7 @@ class QuestionListAPIView(generics.ListAPIView):  # quesiton list with filtered 
 
     def get_queryset(self):
         qs = super().get_queryset()
+        print(qs)
         category_id = self.kwargs['category_id']
         if category_id:
             qs = qs.filter(category_id=category_id)
