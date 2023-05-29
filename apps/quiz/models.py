@@ -22,6 +22,13 @@ class Question(TimeStamp):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     question = models.CharField(max_length=221)
 
+    @classmethod
+    def filter_new_questions(cls, account):
+        old_questions = Result.objects.filter(account=account).values('questions')
+        new_questions = cls.objects.exclude(id__in=old_questions)
+        return new_questions
+
+
     def __str__(self):
         return f"{self.category}'s question: {self.question}"
 

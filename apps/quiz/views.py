@@ -30,8 +30,8 @@ class QuestionListAPIView(generics.ListAPIView):  # quesiton list with filtered 
     serializer_class = QuestionSerializer
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        print(qs)
+        account = self.request.user
+        qs = Question.filter_new_questions(account)
         category_id = self.kwargs['category_id']
         if category_id:
             qs = qs.filter(category_id=category_id).order_by('?')[:5]
@@ -75,11 +75,13 @@ class AnswerFromStudentPostAPIView(APIView):
         account = self.request.user
         category_id = self.request.data.get('category_id')
         questions = self.request.data.get('questions')
+
         try:
             Category.objects.get(id=category_id)
         except Category.DoesNotExist:
             return Response("Category not found")
         result = Result.objects.create(account_id=account.id, category_id=category_id)
+
         j = 0
         for i in questions:
             question_id = int(i.get('question_id'))
@@ -105,7 +107,6 @@ class AnswerFromStudentPostAPIView(APIView):
 
             result.questions.add(question)
             j += 1
-
         result.result = count
         result.save()
         result_serialized = ResultSerializer(result).data
