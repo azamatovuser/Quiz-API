@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from .models import Category, Question, Option, Result, Contact
 from .serializers import CategorySerializer, QuestionSerializer, ResultSerializer, \
-    ContactSerializer, OptionSerializer, QuestionResultSerializer, OptionResultSerializer
+    ContactSerializer, OptionSerializer, QuestionResultSerializer, OptionResultSerializer, QuestionOptionSerializer
 from rest_framework.response import Response
 from operator import attrgetter
 from apps.account.models import Account
@@ -16,6 +16,7 @@ from django.db.models.functions import TruncWeek, TruncDay, TruncMonth
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.validators import ValidationError
+from django.db import models
 
 
 
@@ -27,7 +28,7 @@ class CategoryListAPIView(generics.ListAPIView):  # category list
 
 class QuestionListAPIView(generics.ListAPIView):  # quesiton list with filtered options
     queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
+    serializer_class = QuestionOptionSerializer
 
     def get_queryset(self):
         account = self.request.user
@@ -86,13 +87,15 @@ class AnswerFromStudentPostAPIView(APIView):
         for i in questions:
             question_id = int(i.get('question_id'))
             option_id = int(i.get('option_id'))
-
             try:
                 question = Question.objects.get(id=question_id)
                 option = Option.objects.get(id=option_id)
             except Exception as e:
                 raise ValidationError(e.args)
-
+            all_options = [n.id for n in question.option.all()]
+            if option_id not in all_options:
+                result.delete()
+                return Response({'message': 'Answer does not match the question, please send correct data'})
             statistic.append({
                 "Question": QuestionResultSerializer(question).data,
                 "Option": OptionResultSerializer(option).data
@@ -107,6 +110,8 @@ class AnswerFromStudentPostAPIView(APIView):
 
             result.questions.add(question)
             j += 1
+        if 99 <= count < 100:
+            count = 100
         result.result = count
         result.save()
         result_serialized = ResultSerializer(result).data
@@ -161,36 +166,36 @@ class AverageStatisticByAccountListAPIView(APIView):
         return Response(account_results)
 
 
-class DayStatisticListAPIView(generics.ListAPIView):
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
+class TimeStatisticListAPIView(APIView):
+    def get(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
-    def get_queryset(self):
-        qs = Result.objects.annotate(day=TruncDay('created_date')).filter(day=timezone.now().date()).annotate(
-            total_results=Count('id'))
-        return qs
+        if not start_date or not end_date:
+            return Response({'message': 'start_date and end_date parameters are required'}, status=400)
 
+        try:
+            start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            return Response({'message': 'start_date and end_date must be in the format YYYY-MM-DD'}, status=400)
 
-class WeekStatisticListAPIView(generics.ListAPIView):
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
+        category_stats = Result.objects.filter(created_date__range=(start_date, end_date)).values_list('category')\
+            .annotate(attempts=models.Count('id'), total_result=models.Avg('result'))\
+            .values('category__title', 'account__username', 'attempts', 'total_result')
 
-    def get_queryset(self):
-        now = timezone.now().date()
-        past_week = now - timedelta(days=7)
-        qs = Result.objects.filter(created_date__range=[past_week, now]).annotate(total_results=Count('id'))
-        return qs
+        statistics = []
 
+        for category in category_stats:
+            category_info = {
+                'category': category['category__title'],
+                'account': category["account__username"],
+                'attempts': category['attempts'],
+                'total_result': category['total_result']
+            }
+            statistics.append(category_info)
 
-class MonthStatisticListAPIView(generics.ListAPIView):
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
-
-    def get_queryset(self):
-        now = timezone.now().date()
-        past_month = now - timedelta(days=30)
-        qs = Result.objects.filter(created_date__range=[past_month, now]).annotate(total_results=Count('id'))
-        return qs
+        return Response(statistics)
 
 
 class ContactListCreateAPIView(generics.ListCreateAPIView):

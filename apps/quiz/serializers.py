@@ -33,6 +33,13 @@ class QuestionResultSerializer(serializers.ModelSerializer):
         fields = ['id', 'category', 'question']
 
 
+class QuestionOptionSerializer(serializers.ModelSerializer):
+    option = OptionResultSerializer(many=True)
+    class Meta:
+        model = Question
+        fields = ['id', 'category', 'question', 'option']
+
+
 class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
