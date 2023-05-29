@@ -14,11 +14,23 @@ class OptionSerializer(serializers.ModelSerializer):
         fields = ['id', 'question', 'option', 'is_correct']
 
 
+class OptionResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Option
+        fields = ['option']
+
+
 class QuestionSerializer(serializers.ModelSerializer):
     option = OptionSerializer(read_only=True, many=True)
     class Meta:
         model = Question
         fields = ['id', 'category', 'question', 'option']
+
+
+class QuestionResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ['id', 'category', 'question']
 
 
 class ResultSerializer(serializers.ModelSerializer):

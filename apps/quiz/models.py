@@ -1,6 +1,7 @@
-from django.db import models
+from django.db import models, IntegrityError
 from apps.account.models import Account
 from django.db.models import Avg
+from django.db.models import Q, UniqueConstraint
 
 
 class TimeStamp(models.Model):
@@ -29,6 +30,21 @@ class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='option')
     option = models.CharField(max_length=221)
     is_correct = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['question'],
+                condition=Q(is_correct=True),
+                name='unique_correct_option'
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except:
+            raise IntegrityError('Only one option can be marked as correct for a question.')
 
     def __str__(self):
         return f"{self.question}'s answers"

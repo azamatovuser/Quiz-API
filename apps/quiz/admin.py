@@ -7,6 +7,11 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'title')
 
 
+@admin.register(Option)
+class OptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'option')
+
+
 class OptionInlineAdmin(admin.TabularInline):
     model = Option
     readonly_fields = ('id', )
