@@ -3,6 +3,6 @@ Quiz API for website wich provides a simple and efficient method for students to
 
 # What I learned
 
-• Working with statistic
-• Team working
-• Better understanding algorithm and API
+* Working with statistic
+* Team working
+* Better understanding algorithm and API
